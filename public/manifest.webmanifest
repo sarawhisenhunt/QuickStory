@@ -1,0 +1,10 @@
+{
+  "name": "QuickStory",
+  "short_name": "QuickStory",
+  "description": "Fast, template-first social video editing.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0c",
+  "theme_color": "#0a0a0c",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

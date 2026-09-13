@@ -1,0 +1,11 @@
+node_modules
+dist
+.wrangler
+.dev.vars
+*.tsbuildinfo
+.DS_Store
+coverage
+render-service/tmp
+test-results
+playwright-report
+*.zip

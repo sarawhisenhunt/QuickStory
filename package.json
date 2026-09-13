@@ -1,0 +1,37 @@
+{
+  "name": "quickstory",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:cloudflare": "npm run build && wrangler dev",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --pretty false",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:renderer": "node scripts/render-smoke-test.mjs",
+    "deploy": "npm run build && wrangler deploy",
+    "cf:setup": "bash scripts/setup-cloudflare.sh"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.3.7",
+    "hono": "^4.9.7",
+    "lucide-react": "^0.544.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20260911.1",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@playwright/test": "^1.63.0",
+    "@vitejs/plugin-react": "^5.0.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5",
+    "vitest": "^4.1.0",
+    "wrangler": "^4.131.1"
+  }
+}
