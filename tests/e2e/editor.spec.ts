@@ -18,6 +18,9 @@ test("creates and fine-tunes a quick story", async ({ page }, testInfo) => {
     { name: "favorite-moment.png", mimeType: "image/png", buffer: tinyPng }
   ]);
   await expect(page.locator(".timeline-clip")).toHaveCount(2);
+  await page.getByRole("button", { name: /Start over/i }).click();
+  await page.getByRole("button", { name: /Cancel/i }).click();
+  await expect(page.locator(".timeline-clip")).toHaveCount(2);
 
   await page.locator(".timeline-clip").first().getByRole("button", { name: /Edit clip/i }).click();
   await expect(page.getByRole("heading", { name: "Edit clip" })).toBeVisible();

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Download, Film, FolderOpen, Music2, Plus, Save, Settings2, Sparkles, Trash2 } from "lucide-react";
+import { ChevronDown, Download, Film, FolderOpen, Music2, Plus, RotateCcw, Save, Settings2, Sparkles, Trash2 } from "lucide-react";
 import { ClipEditor } from "./components/ClipEditor";
 import { ExportDialog } from "./components/ExportDialog";
 import { Stage } from "./components/Stage";
@@ -188,14 +188,23 @@ function App() {
   };
 
   const newProject = async () => {
-    if (project.clips.length && !window.confirm("Start a new story? This clears the current draft from this device.")) return;
+    if ((project.clips.length || project.music) && !window.confirm("Start over? This will remove all photos, videos, music, and edits from the current project.")) return;
     project.clips.forEach((clip) => clip.objectUrl && URL.revokeObjectURL(clip.objectUrl));
     if (project.music?.objectUrl) URL.revokeObjectURL(project.music.objectUrl);
+    if (downloadUrl) URL.revokeObjectURL(downloadUrl);
     await clearLocalProject().catch(() => undefined);
     setProject(createProject());
     setActiveIndex(0);
     setProgress(0);
     setIsPlaying(false);
+    setEditorClipId(undefined);
+    setExportOpen(false);
+    setRenderStatus("idle");
+    setRenderProgress(0);
+    setRenderError(undefined);
+    setDownloadUrl(undefined);
+    setDownloadName(undefined);
+    setExportFormat(undefined);
   };
 
   const runExport = async () => {
@@ -238,7 +247,7 @@ function App() {
           <span>{hydrated ? "Saved on this device" : "Opening draft…"}</span>
         </div>
         <nav>
-          <button className="header-button" onClick={newProject}><Plus size={17} />New</button>
+          <button className="header-button reset-header" onClick={newProject} disabled={!project.clips.length && !project.music}><RotateCcw size={16} />Start over</button>
           <button className="header-button muted" title="Saved drafts are coming in the next release"><FolderOpen size={17} />Drafts</button>
           <button className="export-button" onClick={() => setExportOpen(true)} disabled={!project.clips.length}><Download size={17} />Export</button>
         </nav>

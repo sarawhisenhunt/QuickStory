@@ -55,6 +55,8 @@ button:disabled { opacity: 0.42; cursor: not-allowed; }
 .header-button, .export-button { height: 38px; border-radius: 11px; border: 1px solid var(--line); display: flex; align-items: center; gap: 7px; padding: 0 13px; background: var(--surface); font-weight: 600; font-size: 13px; cursor: pointer; }
 .header-button:hover { background: var(--surface-2); }
 .header-button.muted { color: var(--muted); }
+.reset-header { color: #ff9aaa; border-color: rgba(255,77,103,.22); }
+.reset-header:hover { background: rgba(255,77,103,.09); }
 .export-button { border: 0; background: #f7f5f2; color: #111; padding-inline: 17px; }
 .export-button:hover { background: #fff; transform: translateY(-1px); }
 
@@ -305,7 +307,8 @@ main { width: min(1380px, 92vw); margin: 0 auto; padding: 72px 0 90px; }
 
 @media (max-width: 760px) {
   .app-header { height: 62px; grid-template-columns: 1fr auto; padding: 0 15px; }
-  .project-name, .header-button { display: none; }
+  .project-name, .header-button:not(.reset-header) { display: none; }
+  .reset-header { display: inline-flex; padding-inline: 10px; font-size: 11px; }
   .brand strong { font-size: 18px; }
   .app-header nav { gap: 0; }
   .export-button { height: 36px; }
