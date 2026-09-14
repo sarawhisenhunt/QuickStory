@@ -9,8 +9,8 @@ import { exportInBrowser } from "./lib/browserExport";
 import { clearLocalProject, loadLocalProject, saveLocalProject } from "./lib/idb";
 import { fileToClip } from "./lib/media";
 import { clipDuration, createProject, totalDuration } from "./lib/project";
-import { remixStory } from "./lib/remix";
-import { getTemplate } from "./templates";
+import { buildTemplateStory, mediaCounts } from "./lib/remix";
+import { getTemplate, recommendTemplate } from "./templates";
 import type { AspectRatio, MediaClip, RenderStatus, StoryProject } from "./types";
 
 function App() {
@@ -32,6 +32,8 @@ function App() {
   const musicInputRef = useRef<HTMLInputElement>(null);
 
   const template = useMemo(() => getTemplate(project.templateId), [project.templateId]);
+  const inventory = useMemo(() => mediaCounts(project.clips), [project.clips]);
+  const recommendedTemplate = useMemo(() => recommendTemplate(inventory.videos, inventory.photos), [inventory]);
   const activeClip = project.clips[activeIndex];
   const editorClip = project.clips.find((clip) => clip.id === editorClipId);
 
@@ -81,9 +83,18 @@ function App() {
     const accepted = (await Promise.all(Array.from(files).map((file) => fileToClip(file, template)))).filter(Boolean) as MediaClip[];
     if (!accepted.length) return;
     setProject((current) => ({
-      ...current,
-      clips: [...current.clips, ...remixStory(accepted, getTemplate(current.templateId))],
-      updatedAt: new Date().toISOString()
+      ...(() => {
+        const sources = [...current.clips, ...accepted];
+        const counts = mediaCounts(sources);
+        const best = recommendTemplate(counts.videos, counts.photos);
+        return {
+          ...current,
+          templateId: best.id,
+          accent: best.accent,
+          clips: buildTemplateStory(sources, best),
+          updatedAt: new Date().toISOString()
+        };
+      })()
     }));
     if (project.clips.length === 0) setActiveIndex(0);
   };
@@ -94,7 +105,7 @@ function App() {
       ...current,
       templateId,
       accent: next.accent,
-      clips: current.clips.map((clip) => clip.type === "image" ? { ...clip, edits: { ...clip.edits, duration: next.imageDuration } } : clip),
+      clips: current.clips.length ? buildTemplateStory(current.clips, next) : current.clips,
       updatedAt: new Date().toISOString()
     }));
   };
@@ -148,7 +159,7 @@ function App() {
   const remixClips = () => {
     setProject((current) => ({
       ...current,
-      clips: remixStory(current.clips, getTemplate(current.templateId)),
+      clips: buildTemplateStory(current.clips, getTemplate(current.templateId)),
       updatedAt: new Date().toISOString()
     }));
     setActiveIndex(0);
@@ -235,12 +246,23 @@ function App() {
 
       <main>
         <div className="hero-copy">
-          <span className="hero-chip"><Sparkles size={14} />Fast by default. Flexible when you want it.</span>
-          <h1>Today’s clips.<br /><i>One good story.</i></h1>
-          <p>Pick a look, add your moments, and QuickStory does the first edit. Fine-tune only what you want.</p>
+          <span className="hero-chip"><Sparkles size={14} />The fastest path from camera roll to recap.</span>
+          <h1>Upload everything.<br /><i>Get the story.</i></h1>
+          <p>QuickStory counts your photos and videos, picks the right storyboard, finds several moments in longer clips, and builds the first cut.</p>
+          <button className="hero-upload" onClick={() => fileInputRef.current?.click()}>
+            <Plus size={20} />
+            <span><strong>{project.clips.length ? "Add more photos + videos" : "Upload photos + videos"}</strong><small>Select everything from your day at once</small></span>
+          </button>
+          {!!project.clips.length && <div className="auto-pick-note"><Sparkles size={15} /><span><strong>{recommendedTemplate.name}</strong> is the best match for {inventory.videos} video{inventory.videos === 1 ? "" : "s"} and {inventory.photos} photo{inventory.photos === 1 ? "" : "s"}.</span></div>}
         </div>
 
-        <TemplateRail selectedId={project.templateId} onSelect={selectTemplate} />
+        <TemplateRail
+          selectedId={project.templateId}
+          recommendedId={recommendedTemplate.id}
+          videoCount={inventory.videos}
+          photoCount={inventory.photos}
+          onSelect={selectTemplate}
+        />
 
         <section className="workspace-section">
           <div className="workspace-copy">

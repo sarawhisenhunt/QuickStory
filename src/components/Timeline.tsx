@@ -17,8 +17,8 @@ export function Timeline({ clips, activeId, onActivate, onEdit, onAdd, onShuffle
     <section className="timeline-section" aria-labelledby="media-heading">
       <div className="section-heading-row">
         <div>
-          <span className="eyebrow">2 · ADD YOUR MOMENTS</span>
-          <h2 id="media-heading">Your story</h2>
+          <span className="eyebrow">YOUR AUTO EDIT</span>
+          <h2 id="media-heading">Every slot is still editable</h2>
         </div>
         <div className="timeline-actions">
           <span>{clips.length} clips · {formatTime(totalDuration(clips))}</span>

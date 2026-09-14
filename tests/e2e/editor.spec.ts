@@ -7,11 +7,11 @@ const tinyPng = Buffer.from(
 
 test("creates and fine-tunes a quick story", async ({ page }, testInfo) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Today’s clips/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Upload everything/i })).toBeVisible();
   await expect(page.locator(".template-card")).toHaveCount(6);
 
-  await page.getByRole("button", { name: /Soft Story/i }).click();
-  await expect(page.getByRole("button", { name: /Soft Story/i })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: /Two Video Memories/i }).click();
+  await expect(page.getByRole("button", { name: /Two Video Memories/i })).toHaveAttribute("aria-pressed", "true");
 
   await page.locator('input[type="file"]').setInputFiles([
     { name: "first-day.png", mimeType: "image/png", buffer: tinyPng },

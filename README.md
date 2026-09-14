@@ -1,12 +1,14 @@
 # QuickStory
 
-QuickStory is a fast, template-first social video maker. Choose a look, add photos and video clips, accept the automatic edit or fine-tune individual clips, and export without sending source media to a rendering service.
+QuickStory is a fast, template-first social video maker. Upload a batch of photos and videos, let QuickStory choose the best-fit storyboard and build the cut, then export or fine-tune individual moments.
 
 The product opens directly in the editor. There is no dashboard, approval process, login, or required multi-step wizard.
 
 ## Included in the first release
 
-- Six recap, slideshow, promo, memory, graphic, and clean templates
+- Six media-aware storyboards: one-video recap, two-video memories, three-video highlight, three-video-only rush, photo pop, and flexible mix
+- Automatic best-template selection based on the number of original videos and photos
+- Deliberate video beats that reuse different sections of source footage between photo runs
 - Distinct pop, dissolve, wipe, flash, slide, and clean transitions
 - Template-specific zoom, drift, bold-color, film-grain, sweep, and subtle-push effects
 - Drag-and-drop photo and video uploads

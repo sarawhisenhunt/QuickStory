@@ -70,6 +70,10 @@ export interface StoryTemplate {
   effectLabel: string;
   imageDuration: number;
   pace: "calm" | "steady" | "quick";
+  videoRange: [number, number];
+  photoRange: [number, number];
+  videoBeats: number;
+  fitLabel: string;
 }
 
 export type RenderStatus = "idle" | "rendering" | "complete" | "error";
