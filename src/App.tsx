@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Download, Film, FolderOpen, Plus, Save, Settings2, Sparkles } from "lucide-react";
+import { ChevronDown, Download, Film, FolderOpen, Music2, Plus, Save, Settings2, Sparkles, Trash2 } from "lucide-react";
 import { ClipEditor } from "./components/ClipEditor";
 import { ExportDialog } from "./components/ExportDialog";
 import { Stage } from "./components/Stage";
@@ -9,6 +9,7 @@ import { exportInBrowser } from "./lib/browserExport";
 import { clearLocalProject, loadLocalProject, saveLocalProject } from "./lib/idb";
 import { fileToClip } from "./lib/media";
 import { clipDuration, createProject, totalDuration } from "./lib/project";
+import { remixStory } from "./lib/remix";
 import { getTemplate } from "./templates";
 import type { AspectRatio, MediaClip, RenderStatus, StoryProject } from "./types";
 
@@ -28,6 +29,7 @@ function App() {
   const [downloadName, setDownloadName] = useState<string>();
   const [exportFormat, setExportFormat] = useState<"MP4" | "WebM">();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const musicInputRef = useRef<HTMLInputElement>(null);
 
   const template = useMemo(() => getTemplate(project.templateId), [project.templateId]);
   const activeClip = project.clips[activeIndex];
@@ -78,7 +80,11 @@ function App() {
   const addFiles = async (files: FileList | File[]) => {
     const accepted = (await Promise.all(Array.from(files).map((file) => fileToClip(file, template)))).filter(Boolean) as MediaClip[];
     if (!accepted.length) return;
-    setProject((current) => ({ ...current, clips: [...current.clips, ...accepted], updatedAt: new Date().toISOString() }));
+    setProject((current) => ({
+      ...current,
+      clips: [...current.clips, ...remixStory(accepted, getTemplate(current.templateId))],
+      updatedAt: new Date().toISOString()
+    }));
     if (project.clips.length === 0) setActiveIndex(0);
   };
 
@@ -139,21 +145,41 @@ function App() {
     });
   };
 
-  const shuffleClips = () => {
-    setProject((current) => {
-      const clips = [...current.clips];
-      for (let index = clips.length - 1; index > 0; index -= 1) {
-        const target = Math.floor(Math.random() * (index + 1));
-        [clips[index], clips[target]] = [clips[target], clips[index]];
-      }
-      return { ...current, clips, updatedAt: new Date().toISOString() };
-    });
+  const remixClips = () => {
+    setProject((current) => ({
+      ...current,
+      clips: remixStory(current.clips, getTemplate(current.templateId)),
+      updatedAt: new Date().toISOString()
+    }));
     setActiveIndex(0);
+    setProgress(0);
+    setIsPlaying(false);
+  };
+
+  const addMusic = (file?: File) => {
+    if (!file || (!file.type.startsWith("audio/") && !/\.(mp3|m4a|wav|aac|ogg)$/i.test(file.name))) return;
+    if (project.music?.objectUrl) URL.revokeObjectURL(project.music.objectUrl);
+    updateProject({
+      music: {
+        id: crypto.randomUUID(),
+        file,
+        name: file.name,
+        mimeType: file.type || "audio/mpeg",
+        objectUrl: URL.createObjectURL(file),
+        volume: 28
+      }
+    });
+  };
+
+  const removeMusic = () => {
+    if (project.music?.objectUrl) URL.revokeObjectURL(project.music.objectUrl);
+    updateProject({ music: undefined });
   };
 
   const newProject = async () => {
     if (project.clips.length && !window.confirm("Start a new story? This clears the current draft from this device.")) return;
     project.clips.forEach((clip) => clip.objectUrl && URL.revokeObjectURL(clip.objectUrl));
+    if (project.music?.objectUrl) URL.revokeObjectURL(project.music.objectUrl);
     await clearLocalProject().catch(() => undefined);
     setProject(createProject());
     setActiveIndex(0);
@@ -243,6 +269,22 @@ function App() {
                 <input value={project.accent} maxLength={7} onChange={(event) => updateProject({ accent: event.target.value })} />
               </div>
             </label>
+            <div className="music-field">
+              <span>Music</span>
+              {project.music ? (
+                <div className="music-track">
+                  <div><Music2 size={17} /><span><strong>{project.music.name}</strong><small>Mixed under clip audio</small></span></div>
+                  <audio src={project.music.objectUrl} controls preload="metadata" />
+                  <label>
+                    <span>Music volume <b>{project.music.volume}%</b></span>
+                    <input type="range" min="0" max="100" value={project.music.volume} onChange={(event) => updateProject({ music: { ...project.music!, volume: Number(event.target.value) } })} />
+                  </label>
+                  <button className="remove-music" onClick={removeMusic}><Trash2 size={14} />Remove</button>
+                </div>
+              ) : (
+                <button className="add-music" onClick={() => musicInputRef.current?.click()}><Music2 size={17} /><span><strong>Add music</strong><small>MP3, M4A or WAV from your device</small></span></button>
+              )}
+            </div>
             <button className="advanced-note" onClick={() => activeClip && setEditorClipId(activeClip.id)} disabled={!activeClip}>
               <Settings2 size={18} />
               <span><strong>Want more control?</strong><small>Trim, crop, speed, color and clip text</small></span>
@@ -272,7 +314,7 @@ function App() {
           onActivate={activateClip}
           onEdit={setEditorClipId}
           onAdd={() => fileInputRef.current?.click()}
-          onShuffle={shuffleClips}
+          onShuffle={remixClips}
           onMove={moveClip}
         />
 
@@ -289,6 +331,13 @@ function App() {
         multiple
         hidden
         onChange={(event) => { if (event.target.files) void addFiles(event.target.files); event.target.value = ""; }}
+      />
+      <input
+        ref={musicInputRef}
+        type="file"
+        accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/wav,audio/aac,audio/ogg,audio/webm"
+        hidden
+        onChange={(event) => { addMusic(event.target.files?.[0]); event.target.value = ""; }}
       />
 
       {editorClip && (

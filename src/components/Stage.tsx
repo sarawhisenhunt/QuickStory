@@ -50,15 +50,15 @@ export function Stage({
     <section className="stage-panel">
       <div className="stage-toolbar">
         <span className="eyebrow">LIVE PREVIEW</span>
-        <span>{aspectRatio}</span>
+        <span>{aspectRatio} · {template.transitionLabel} · {template.effectLabel}</span>
       </div>
-      <div className={`stage-frame ratio-${aspectRatio.replace(":", "-")} ${template.previewClass}`} style={{ "--accent": accent } as React.CSSProperties}>
+      <div className={`stage-frame ratio-${aspectRatio.replace(":", "-")} ${template.previewClass} ${isPlaying ? "is-playing" : ""}`} style={{ "--accent": accent } as React.CSSProperties}>
         {clip ? (
           <>
             {clip.type === "image" ? (
-              <img src={clip.objectUrl} alt="Current clip" style={mediaStyle} />
+              <img key={clip.id} src={clip.objectUrl} alt="Current clip" style={mediaStyle} />
             ) : (
-              <video ref={videoRef} src={clip.objectUrl} muted={clip.edits.volume === 0} playsInline style={mediaStyle} />
+              <video key={clip.id} ref={videoRef} src={clip.objectUrl} muted={clip.edits.volume === 0} playsInline style={mediaStyle} />
             )}
             <div className="stage-shade" />
             <div className="stage-copy">

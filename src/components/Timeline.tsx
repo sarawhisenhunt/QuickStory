@@ -1,4 +1,4 @@
-import { GripVertical, Image as ImageIcon, Pencil, Plus, Shuffle, Video } from "lucide-react";
+import { GripVertical, Image as ImageIcon, Pencil, Plus, Sparkles, Video } from "lucide-react";
 import { clipDuration, formatTime, totalDuration } from "../lib/project";
 import type { MediaClip } from "../types";
 
@@ -22,7 +22,7 @@ export function Timeline({ clips, activeId, onActivate, onEdit, onAdd, onShuffle
         </div>
         <div className="timeline-actions">
           <span>{clips.length} clips · {formatTime(totalDuration(clips))}</span>
-          <button className="secondary-button" onClick={onShuffle} disabled={clips.length < 2}><Shuffle size={15} />Auto-arrange</button>
+          <button className="secondary-button remix-button" onClick={onShuffle} disabled={!clips.length}><Sparkles size={15} />Remix story</button>
         </div>
       </div>
       <div className="timeline" onDragOver={(event) => event.preventDefault()}>

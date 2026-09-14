@@ -19,6 +19,7 @@ export async function fileToClip(file: File, template: StoryTemplate): Promise<M
   const sourceDuration = isVideo ? await readVideoDuration(objectUrl) : template.imageDuration;
   return {
     id: crypto.randomUUID(),
+    sourceId: crypto.randomUUID(),
     file,
     name: file.name,
     type: isVideo ? "video" : "image",

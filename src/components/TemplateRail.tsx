@@ -32,6 +32,10 @@ export function TemplateRail({ selectedId, onSelect }: Props) {
             </div>
             <strong>{template.name}</strong>
             <small>{template.description}</small>
+            <span className="template-details">
+              <em>{template.transitionLabel}</em>
+              <em>{template.effectLabel}</em>
+            </span>
           </button>
         ))}
       </div>

@@ -7,14 +7,18 @@ The product opens directly in the editor. There is no dashboard, approval proces
 ## Included in the first release
 
 - Six recap, slideshow, promo, memory, graphic, and clean templates
+- Distinct pop, dissolve, wipe, flash, slide, and clean transitions
+- Template-specific zoom, drift, bold-color, film-grain, sweep, and subtle-push effects
 - Drag-and-drop photo and video uploads
-- Automatic template timing and clip arrangement
+- Automatic multi-moment cuts from different sections of longer source videos
+- One-click Remix generation for a different randomized edit
 - Reorderable visual timeline
 - Live 9:16, 1:1, and 16:9 previews
 - Headline, subtitle, and accent color controls
 - Optional per-clip trim, speed, duration, crop, position, zoom, rotation, color, volume, and text controls
 - On-device autosave using IndexedDB, including source media
 - On-device video export through Canvas, Web Audio, and MediaRecorder
+- Optional MP3, M4A, WAV, AAC, OGG, or WebM music with adjustable mix volume
 - MP4 output when the browser supports MP4 recording, with WebM as the compatibility fallback
 - Installable PWA metadata
 

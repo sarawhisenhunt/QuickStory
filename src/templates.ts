@@ -9,6 +9,10 @@ export const TEMPLATES: StoryTemplate[] = [
     previewClass: "template-pop",
     accent: "#ff4d67",
     transition: "smoothleft",
+    transitionKind: "pop",
+    transitionLabel: "Snap pop",
+    effectKind: "punch",
+    effectLabel: "Punch zoom",
     imageDuration: 1.8,
     pace: "quick"
   },
@@ -20,6 +24,10 @@ export const TEMPLATES: StoryTemplate[] = [
     previewClass: "template-soft",
     accent: "#f6b980",
     transition: "fade",
+    transitionKind: "dissolve",
+    transitionLabel: "Soft dissolve",
+    effectKind: "ken-burns",
+    effectLabel: "Slow drift",
     imageDuration: 3.2,
     pace: "calm"
   },
@@ -31,6 +39,10 @@ export const TEMPLATES: StoryTemplate[] = [
     previewClass: "template-news",
     accent: "#f7d84a",
     transition: "wipeleft",
+    transitionKind: "wipe",
+    transitionLabel: "Headline wipe",
+    effectKind: "bold",
+    effectLabel: "Bold reveal",
     imageDuration: 2.2,
     pace: "steady"
   },
@@ -42,6 +54,10 @@ export const TEMPLATES: StoryTemplate[] = [
     previewClass: "template-film",
     accent: "#ff8f3d",
     transition: "fadeblack",
+    transitionKind: "flash",
+    transitionLabel: "Film flash",
+    effectKind: "film",
+    effectLabel: "Grain + warmth",
     imageDuration: 2.8,
     pace: "calm"
   },
@@ -53,6 +69,10 @@ export const TEMPLATES: StoryTemplate[] = [
     previewClass: "template-block",
     accent: "#9b7bff",
     transition: "slideleft",
+    transitionKind: "slide",
+    transitionLabel: "Color slide",
+    effectKind: "color-sweep",
+    effectLabel: "Rhythmic motion",
     imageDuration: 1.7,
     pace: "quick"
   },
@@ -64,6 +84,10 @@ export const TEMPLATES: StoryTemplate[] = [
     previewClass: "template-clean",
     accent: "#66e2c4",
     transition: "fade",
+    transitionKind: "clean",
+    transitionLabel: "Clean fade",
+    effectKind: "subtle",
+    effectLabel: "Gentle push",
     imageDuration: 2.4,
     pace: "steady"
   }

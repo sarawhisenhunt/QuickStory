@@ -1,11 +1,12 @@
-import type { MediaClip, StoryProject } from "../types";
+import type { MediaClip, MusicTrack, StoryProject } from "../types";
 
 const DB_NAME = "quickstory-local";
 const STORE_NAME = "projects";
 const CURRENT_KEY = "current";
 
 type StoredClip = Omit<MediaClip, "objectUrl" | "thumbnailUrl">;
-type StoredProject = Omit<StoryProject, "clips"> & { clips: StoredClip[] };
+type StoredMusic = Omit<MusicTrack, "objectUrl">;
+type StoredProject = Omit<StoryProject, "clips" | "music"> & { clips: StoredClip[]; music?: StoredMusic };
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -25,6 +26,7 @@ export async function saveLocalProject(project: StoryProject) {
   const stored: StoredProject = {
     ...project,
     clips: project.clips.map(({ objectUrl: _url, thumbnailUrl: _thumb, ...clip }) => clip),
+    music: project.music ? (({ objectUrl: _url, ...music }) => music)(project.music) : undefined,
     updatedAt: new Date().toISOString()
   };
   await new Promise<void>((resolve, reject) => {
@@ -48,6 +50,10 @@ export async function loadLocalProject(): Promise<StoryProject | null> {
   if (!stored) return null;
   return {
     ...stored,
+    music: stored.music ? {
+      ...stored.music,
+      objectUrl: stored.music.file ? URL.createObjectURL(stored.music.file) : ""
+    } : undefined,
     clips: stored.clips.map((clip) => ({
       ...clip,
       objectUrl: clip.file ? URL.createObjectURL(clip.file) : ""

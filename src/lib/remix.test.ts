@@ -1,0 +1,35 @@
+import { describe, expect, it } from "vitest";
+import { remixStory } from "./remix";
+import { TEMPLATES } from "../templates";
+import { DEFAULT_EDITS } from "./project";
+import type { MediaClip } from "../types";
+
+function video(duration: number): MediaClip {
+  return {
+    id: "clip",
+    sourceId: "source",
+    name: "long-day.mov",
+    type: "video",
+    mimeType: "video/quicktime",
+    objectUrl: "blob:test",
+    sourceDuration: duration,
+    edits: { ...DEFAULT_EDITS, trimEnd: duration }
+  };
+}
+
+describe("story remix", () => {
+  it("pulls several distinct moments from a long video", () => {
+    const result = remixStory([video(20)], TEMPLATES[0], () => 0.4);
+    expect(result).toHaveLength(4);
+    expect(new Set(result.map((clip) => clip.sourceId))).toEqual(new Set(["source"]));
+    expect(result.every((clip) => clip.edits.trimEnd > clip.edits.trimStart)).toBe(true);
+    expect(new Set(result.map((clip) => clip.edits.trimStart)).size).toBe(4);
+  });
+
+  it("does not multiply an already remixed source", () => {
+    const original = video(12);
+    const duplicate = { ...original, id: "duplicate", edits: { ...original.edits, trimStart: 4, trimEnd: 7 } };
+    const result = remixStory([original, duplicate], TEMPLATES[1], () => 0.3);
+    expect(result).toHaveLength(2);
+  });
+});

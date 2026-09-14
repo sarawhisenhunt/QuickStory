@@ -104,7 +104,10 @@ function drawMedia(
   sourceHeight: number,
   clip: MediaClip,
   width: number,
-  height: number
+  height: number,
+  progress: number,
+  templateId: string,
+  clipIndex: number
 ) {
   const { edits } = clip;
   const baseScale = edits.crop === "fill"
@@ -114,14 +117,18 @@ function drawMedia(
   const drawHeight = sourceHeight * baseScale;
   const overflowX = Math.max(0, drawWidth - width);
   const overflowY = Math.max(0, drawHeight - height);
-  const x = -drawWidth / 2 + (0.5 - edits.positionX) * overflowX;
-  const y = -drawHeight / 2 + (0.5 - edits.positionY) * overflowY;
+  const drift = templateId === "soft-story" ? 0.06 * progress : templateId === "clean-cut" ? 0.025 * progress : 0;
+  const pulse = templateId === "day-pop" ? Math.sin(progress * Math.PI * 3) * 0.012 : 0;
+  const sweep = templateId === "color-block" ? (progress - 0.5) * 0.035 * (clipIndex % 2 ? -1 : 1) : 0;
+  const x = -drawWidth / 2 + (0.5 - edits.positionX + sweep) * overflowX;
+  const y = -drawHeight / 2 + (0.5 - edits.positionY - drift * 0.18) * overflowY;
 
   ctx.save();
   ctx.translate(width / 2, height / 2);
   ctx.rotate(edits.rotation * Math.PI / 180);
-  ctx.scale(edits.zoom, edits.zoom);
-  ctx.filter = `brightness(${100 + edits.brightness}%) contrast(${edits.contrast}%) saturate(${edits.saturation}%)`;
+  ctx.scale(edits.zoom + drift + pulse, edits.zoom + drift + pulse);
+  const templateFilter = templateId === "film-roll" ? " sepia(22%) contrast(108%)" : templateId === "big-news" ? " contrast(112%) saturate(112%)" : "";
+  ctx.filter = `brightness(${100 + edits.brightness}%) contrast(${edits.contrast}%) saturate(${edits.saturation}%)${templateFilter}`;
   ctx.drawImage(source, x, y, drawWidth, drawHeight);
   ctx.restore();
   ctx.filter = "none";
@@ -179,10 +186,49 @@ function drawOverlay(ctx: CanvasRenderingContext2D, project: StoryProject, clip:
     ctx.fill();
   }
 
-  const fadeWindow = Math.min(0.18, duration / 5);
-  const fade = Math.min(1, elapsed / fadeWindow, (duration - elapsed) / fadeWindow);
-  if (fade < 1) {
-    ctx.fillStyle = `rgba(0,0,0,${1 - Math.max(0, fade)})`;
+  if (project.templateId === "film-roll") {
+    ctx.globalAlpha = 0.11;
+    ctx.fillStyle = elapsed * 10 % 2 > 1 ? "#f7d5a5" : "#21160f";
+    for (let line = 0; line < 18; line += 1) {
+      const x = (line * 97 + Math.floor(elapsed * 140)) % width;
+      ctx.fillRect(x, 0, Math.max(1, width * 0.0015), height);
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawWithTransition(
+  ctx: CanvasRenderingContext2D,
+  kind: ReturnType<typeof getTemplate>["transitionKind"],
+  amount: number,
+  clipIndex: number,
+  width: number,
+  height: number,
+  draw: () => void
+) {
+  const eased = 1 - Math.pow(1 - Math.max(0, Math.min(1, amount)), 3);
+  ctx.save();
+  if (kind === "pop") {
+    ctx.globalAlpha = eased;
+    ctx.translate(width / 2, height / 2);
+    ctx.scale(0.78 + eased * 0.22, 0.78 + eased * 0.22);
+    ctx.translate(-width / 2, -height / 2);
+  } else if (kind === "dissolve" || kind === "clean") {
+    ctx.globalAlpha = eased;
+  } else if (kind === "wipe") {
+    ctx.beginPath();
+    ctx.rect(0, 0, width * eased, height);
+    ctx.clip();
+  } else if (kind === "slide") {
+    ctx.translate((clipIndex % 2 ? -1 : 1) * width * (1 - eased), 0);
+  } else if (kind === "flash") {
+    ctx.globalAlpha = Math.min(1, eased * 1.5);
+  }
+  draw();
+  ctx.restore();
+
+  if (kind === "flash" && amount < 0.55) {
+    ctx.fillStyle = `rgba(255,244,220,${Math.sin((amount / 0.55) * Math.PI) * 0.6})`;
     ctx.fillRect(0, 0, width, height);
   }
 }
@@ -230,9 +276,27 @@ export async function exportInBrowser(project: StoryProject, onProgress: (percen
   const total = durations.reduce((sum, value) => sum + value, 0);
   let completed = 0;
   await audioContext.resume();
+  let music: HTMLAudioElement | undefined;
+  let musicGain: GainNode | undefined;
+  if (project.music?.objectUrl) {
+    music = new Audio(project.music.objectUrl);
+    music.loop = true;
+    music.preload = "auto";
+    if (music.readyState < HTMLMediaElement.HAVE_METADATA) await waitFor(music, "loadedmetadata");
+    musicGain = audioContext.createGain();
+    musicGain.gain.value = Math.max(0, Math.min(1, project.music.volume / 100));
+    audioContext.createMediaElementSource(music).connect(musicGain).connect(audioOutput);
+  }
   recorder.start(1000);
+  if (music) await music.play();
 
+  let renderError: unknown;
   try {
+    const template = getTemplate(project.templateId);
+    const previous = document.createElement("canvas");
+    previous.width = width;
+    previous.height = height;
+    const previousCtx = previous.getContext("2d");
     for (let index = 0; index < project.clips.length; index += 1) {
       const clip = project.clips[index];
       const duration = durations[index];
@@ -258,12 +322,20 @@ export async function exportInBrowser(project: StoryProject, onProgress: (percen
         ctx.fillRect(0, 0, width, height);
         const sourceWidth = media instanceof HTMLVideoElement ? media.videoWidth : media.naturalWidth;
         const sourceHeight = media instanceof HTMLVideoElement ? media.videoHeight : media.naturalHeight;
-        drawMedia(ctx, media, sourceWidth, sourceHeight, clip, width, height);
-        drawOverlay(ctx, project, clip, width, height, elapsed, duration);
+        if (index > 0 && previousCtx) ctx.drawImage(previous, 0, 0);
+        const transitionDuration = Math.min(0.55, duration * 0.3);
+        const transitionAmount = index === 0 ? 1 : elapsed / transitionDuration;
+        drawWithTransition(ctx, template.transitionKind, transitionAmount, index, width, height, () => {
+          drawMedia(ctx, media, sourceWidth, sourceHeight, clip, width, height, elapsed / duration, project.templateId, index);
+          drawOverlay(ctx, project, clip, width, height, elapsed, duration);
+        });
         onProgress(Math.min(99, ((completed + elapsed) / total) * 100));
         await nextFrame();
         elapsed = (performance.now() - started) / 1000;
       }
+
+      previousCtx?.clearRect(0, 0, width, height);
+      previousCtx?.drawImage(canvas, 0, 0);
 
       if (media instanceof HTMLVideoElement) {
         media.pause();
@@ -274,16 +346,23 @@ export async function exportInBrowser(project: StoryProject, onProgress: (percen
       completed += duration;
     }
   } catch (error) {
-    if (recorder.state !== "inactive") recorder.stop();
-    await stopped.catch(() => undefined);
-    throw error;
+    renderError = error;
   } finally {
     if (recorder.state !== "inactive") recorder.stop();
   }
 
-  await stopped;
+  let recordingError: unknown;
+  await stopped.catch((error) => { recordingError = error; });
+  if (music) {
+    music.pause();
+    music.removeAttribute("src");
+    music.load();
+  }
+  musicGain?.disconnect();
   outputStream.getTracks().forEach((track) => track.stop());
   await audioContext.close();
+  if (renderError) throw renderError;
+  if (recordingError) throw recordingError;
   if (!chunks.length) throw new Error("The browser finished without producing a video file.");
 
   const blob = new Blob(chunks, { type: mimeType });
