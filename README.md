@@ -1,12 +1,12 @@
 # QuickStory
 
-QuickStory is a fast, template-first social video maker. Choose a look, add photos and video clips, accept the automatic edit or fine-tune individual clips, and export a real MP4.
+QuickStory is a fast, template-first social video maker. Choose a look, add photos and video clips, accept the automatic edit or fine-tune individual clips, and export without sending source media to a rendering service.
 
-The product deliberately opens in the editor. There is no dashboard, approval process, or required multi-step wizard.
+The product opens directly in the editor. There is no dashboard, approval process, login, or required multi-step wizard.
 
 ## Included in the first release
 
-- Six distinct recap, slideshow, promo, memory, graphic, and clean templates
+- Six recap, slideshow, promo, memory, graphic, and clean templates
 - Drag-and-drop photo and video uploads
 - Automatic template timing and clip arrangement
 - Reorderable visual timeline
@@ -14,53 +14,31 @@ The product deliberately opens in the editor. There is no dashboard, approval pr
 - Headline, subtitle, and accent color controls
 - Optional per-clip trim, speed, duration, crop, position, zoom, rotation, color, volume, and text controls
 - On-device autosave using IndexedDB, including source media
-- Private multipart uploads to Cloudflare R2 through authenticated Worker routes
-- Cloudflare D1 project and render history
-- Server-rendered H.264/AAC MP4 output through FFmpeg in a Cloudflare Container
+- On-device video export through Canvas, Web Audio, and MediaRecorder
+- MP4 output when the browser supports MP4 recording, with WebM as the compatibility fallback
 - Installable PWA metadata
 
-## Architecture
+## How browser export works
 
-```mermaid
-flowchart TD
-    UI[React editor] -->|temporary signed upload| R2[(Private R2 media)]
-    UI --> API[Cloudflare Worker API]
-    API --> D1[(D1 projects and jobs)]
-    API --> FF[FFmpeg container]
-    FF -->|read sources / write MP4| R2
-    R2 -->|temporary download| UI
-```
+QuickStory plays the finished composition into an offscreen canvas at 30 frames per second. Video audio is mixed with the Web Audio API, and MediaRecorder creates the downloadable file. Nothing is uploaded during export.
 
-GitHub holds the complete source. Cloudflare Workers serves the Vite application and API. Source and output media stay in a private R2 bucket. D1 stores project JSON and render history. A scale-to-zero Cloudflare Container runs FFmpeg for consistent MP4 output across desktop and mobile browsers.
+Browser rendering happens in real time: a 30-second story takes about 30 seconds to export. Keep the tab visible until it finishes. Current Chrome, Edge, and Safari releases are the supported targets. The browser decides which recording container is available, so some devices produce WebM rather than MP4.
 
-## Local editor development
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-The editor runs without Cloudflare for UI work. Export requires the Worker, R2, D1, and the renderer container.
+## Cloudflare deployment
 
-## Cloudflare setup
-
-Cloudflare Containers require the Workers Paid plan.
-
-1. Run `npm run cf:setup`.
-2. Copy the D1 ID printed by Wrangler into `wrangler.jsonc` in place of the all-zero placeholder ID.
-3. Apply the database migration:
+The app uses Cloudflare Workers static assets and works on the free Workers plan. It does not require Docker, Containers, R2, or D1.
 
 ```bash
-npx wrangler d1 migrations apply quickstory-db --remote
-```
-
-4. Build and deploy:
-
-```bash
+npx wrangler login
 npm run deploy
 ```
-
-For the first private release, protect the deployed application with Cloudflare Access or an equivalent access rule. This prevents anonymous visitors from consuming upload and rendering capacity while preserving the one-screen editor after sign-in.
 
 ## Verification
 
@@ -68,13 +46,16 @@ For the first private release, protect the deployed application with Cloudflare 
 npm run typecheck
 npm test
 npm run build
-node --check render-service/server.mjs
+npx wrangler deploy --dry-run
 ```
 
 ## Deliberate first-release limits
 
-- Maximum 80 clips and 2 GB per uploaded file
-- Short social videos are the target; long-form editing is outside the first release
-- No bundled commercial music until licensed tracks are selected
-- Only the current draft is restored from the device in this first UI
-- Rendering is synchronous in v1; queued background renders can be added if usage grows
+- Export resolution is 720×1280, 720×720, or 1280×720 to keep browser rendering practical.
+- Export runs in real time and the tab must remain open and visible.
+- Long or numerous high-resolution clips can exceed a browser's memory limits.
+- MP4 availability depends on the browser; WebM is used when MP4 recording is unavailable.
+- No bundled commercial music until licensed tracks are selected.
+- Only the current draft is restored from the device in this first UI.
+
+The previous R2, D1, and FFmpeg architecture can be restored later if dependable server-side MP4 rendering becomes worth the paid infrastructure.

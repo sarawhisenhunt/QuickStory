@@ -5,7 +5,7 @@ import { ExportDialog } from "./components/ExportDialog";
 import { Stage } from "./components/Stage";
 import { TemplateRail } from "./components/TemplateRail";
 import { Timeline } from "./components/Timeline";
-import { exportProject } from "./lib/api";
+import { exportInBrowser } from "./lib/browserExport";
 import { clearLocalProject, loadLocalProject, saveLocalProject } from "./lib/idb";
 import { fileToClip } from "./lib/media";
 import { clipDuration, createProject, totalDuration } from "./lib/project";
@@ -25,6 +25,8 @@ function App() {
   const [renderProgress, setRenderProgress] = useState(0);
   const [renderError, setRenderError] = useState<string>();
   const [downloadUrl, setDownloadUrl] = useState<string>();
+  const [downloadName, setDownloadName] = useState<string>();
+  const [exportFormat, setExportFormat] = useState<"MP4" | "WebM">();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const template = useMemo(() => getTemplate(project.templateId), [project.templateId]);
@@ -160,15 +162,18 @@ function App() {
   };
 
   const runExport = async () => {
-    setRenderStatus("uploading");
+    if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+    setRenderStatus("rendering");
     setRenderProgress(0);
     setRenderError(undefined);
+    setDownloadUrl(undefined);
+    setDownloadName(undefined);
+    setExportFormat(undefined);
     try {
-      const result = await exportProject(project, (completed, total) => setRenderProgress((completed / total) * 70));
-      setProject(result.project);
-      setRenderStatus("rendering");
-      setRenderProgress(88);
+      const result = await exportInBrowser(project, setRenderProgress);
       setDownloadUrl(result.downloadUrl);
+      setDownloadName(result.fileName);
+      setExportFormat(result.formatLabel);
       setRenderProgress(100);
       setRenderStatus("complete");
     } catch (error) {
@@ -273,7 +278,7 @@ function App() {
 
         <section className="finish-bar">
           <div><span className="eyebrow">4 · THAT’S IT</span><h2>Ready when you are.</h2><p>Preview it once, or trust the template and go.</p></div>
-          <button className="big-export" onClick={() => setExportOpen(true)} disabled={!project.clips.length}><Download />Export my story <span>MP4</span></button>
+          <button className="big-export" onClick={() => setExportOpen(true)} disabled={!project.clips.length}><Download />Export my story <span>VIDEO</span></button>
         </section>
       </main>
 
@@ -302,6 +307,8 @@ function App() {
         progress={renderProgress}
         error={renderError}
         downloadUrl={downloadUrl}
+        downloadName={downloadName}
+        exportFormat={exportFormat}
         onExport={runExport}
         onClose={() => setExportOpen(false)}
       />

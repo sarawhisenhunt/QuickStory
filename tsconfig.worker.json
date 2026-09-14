@@ -11,5 +11,5 @@
     "noEmit": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["worker", "render-service/types.d.ts"]
+  "include": ["worker"]
 }

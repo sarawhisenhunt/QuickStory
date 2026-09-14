@@ -55,4 +55,4 @@ export interface StoryTemplate {
   pace: "calm" | "steady" | "quick";
 }
 
-export type RenderStatus = "idle" | "uploading" | "rendering" | "complete" | "error";
+export type RenderStatus = "idle" | "rendering" | "complete" | "error";

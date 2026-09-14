@@ -11,12 +11,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:renderer": "node scripts/render-smoke-test.mjs",
     "deploy": "npm run build && wrangler deploy",
-    "cf:setup": "bash scripts/setup-cloudflare.sh"
+    "cf:setup": "wrangler login"
   },
   "dependencies": {
-    "@cloudflare/containers": "^0.3.7",
     "hono": "^4.9.7",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
