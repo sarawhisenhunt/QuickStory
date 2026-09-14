@@ -6,6 +6,7 @@ import { Stage } from "./components/Stage";
 import { TemplateRail } from "./components/TemplateRail";
 import { Timeline } from "./components/Timeline";
 import { exportInBrowser } from "./lib/browserExport";
+import { BUILTIN_TRACKS, createBuiltinMusicFile } from "./lib/builtinMusic";
 import { clearLocalProject, loadLocalProject, saveLocalProject } from "./lib/idb";
 import { fileToClip } from "./lib/media";
 import { clipDuration, createProject, totalDuration } from "./lib/project";
@@ -28,6 +29,7 @@ function App() {
   const [downloadUrl, setDownloadUrl] = useState<string>();
   const [downloadName, setDownloadName] = useState<string>();
   const [exportFormat, setExportFormat] = useState<"MP4" | "WebM">();
+  const [musicLibraryOpen, setMusicLibraryOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const musicInputRef = useRef<HTMLInputElement>(null);
 
@@ -167,12 +169,13 @@ function App() {
     setIsPlaying(false);
   };
 
-  const addMusic = (file?: File) => {
+  const addMusic = (file?: File, builtinId?: string) => {
     if (!file || (!file.type.startsWith("audio/") && !/\.(mp3|m4a|wav|aac|ogg)$/i.test(file.name))) return;
     if (project.music?.objectUrl) URL.revokeObjectURL(project.music.objectUrl);
     updateProject({
       music: {
         id: crypto.randomUUID(),
+        builtinId,
         file,
         name: file.name,
         mimeType: file.type || "audio/mpeg",
@@ -180,11 +183,18 @@ function App() {
         volume: 28
       }
     });
+    setMusicLibraryOpen(false);
+  };
+
+  const addBuiltinMusic = (id: string) => {
+    const track = BUILTIN_TRACKS.find((candidate) => candidate.id === id);
+    if (track) addMusic(createBuiltinMusicFile(track), track.id);
   };
 
   const removeMusic = () => {
     if (project.music?.objectUrl) URL.revokeObjectURL(project.music.objectUrl);
     updateProject({ music: undefined });
+    setMusicLibraryOpen(true);
   };
 
   const newProject = async () => {
@@ -205,6 +215,7 @@ function App() {
     setDownloadUrl(undefined);
     setDownloadName(undefined);
     setExportFormat(undefined);
+    setMusicLibraryOpen(false);
   };
 
   const runExport = async () => {
@@ -301,7 +312,7 @@ function App() {
               </div>
             </label>
             <div className="music-field">
-              <span>Music</span>
+              <div className="music-heading"><span>Music</span><em>Original QuickStory tracks · royalty-free</em></div>
               {project.music ? (
                 <div className="music-track">
                   <div><Music2 size={17} /><span><strong>{project.music.name}</strong><small>Mixed under clip audio</small></span></div>
@@ -310,10 +321,24 @@ function App() {
                     <span>Music volume <b>{project.music.volume}%</b></span>
                     <input type="range" min="0" max="100" value={project.music.volume} onChange={(event) => updateProject({ music: { ...project.music!, volume: Number(event.target.value) } })} />
                   </label>
-                  <button className="remove-music" onClick={removeMusic}><Trash2 size={14} />Remove</button>
+                  <div className="music-track-actions">
+                    <button className="change-music" onClick={() => setMusicLibraryOpen((open) => !open)}><Music2 size={13} />{musicLibraryOpen ? "Close library" : "Choose another"}</button>
+                    <button className="remove-music" onClick={removeMusic}><Trash2 size={14} />Remove</button>
+                  </div>
                 </div>
-              ) : (
-                <button className="add-music" onClick={() => musicInputRef.current?.click()}><Music2 size={17} /><span><strong>Add music</strong><small>MP3, M4A or WAV from your device</small></span></button>
+              ) : null}
+              {(!project.music || musicLibraryOpen) && (
+                <div className="music-library">
+                  <div className="builtin-tracks">
+                    {BUILTIN_TRACKS.map((track) => (
+                      <button key={track.id} className={project.music?.builtinId === track.id ? "selected" : ""} onClick={() => addBuiltinMusic(track.id)} style={{ "--track-color": track.color } as React.CSSProperties}>
+                        <span className="track-play">♪</span>
+                        <span><strong>{track.name}</strong><small>{track.mood} · {track.bpm} BPM</small></span>
+                      </button>
+                    ))}
+                  </div>
+                  <button className="add-music" onClick={() => musicInputRef.current?.click()}><Plus size={16} /><span><strong>Use my own song</strong><small>MP3, M4A or WAV from your device</small></span></button>
+                </div>
               )}
             </div>
             <button className="advanced-note" onClick={() => activeClip && setEditorClipId(activeClip.id)} disabled={!activeClip}>
@@ -331,6 +356,7 @@ function App() {
             aspectRatio={project.aspectRatio}
             isPlaying={isPlaying}
             progress={progress}
+            clipIndex={activeIndex}
             onTogglePlay={() => {
               if (progress >= 1) { setActiveIndex(0); setProgress(0); }
               setIsPlaying((playing) => !playing);

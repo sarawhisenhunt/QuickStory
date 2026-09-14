@@ -11,6 +11,7 @@ interface Props {
   aspectRatio: AspectRatio;
   isPlaying: boolean;
   progress: number;
+  clipIndex: number;
   onTogglePlay: () => void;
   onAdd: () => void;
 }
@@ -24,6 +25,7 @@ export function Stage({
   aspectRatio,
   isPlaying,
   progress,
+  clipIndex,
   onTogglePlay,
   onAdd
 }: Props) {
@@ -45,6 +47,7 @@ export function Stage({
     transform: `scale(${clip.edits.zoom}) rotate(${clip.edits.rotation}deg)`,
     filter: `brightness(${100 + clip.edits.brightness}%) contrast(${clip.edits.contrast}%) saturate(${clip.edits.saturation}%)`
   } as const : undefined;
+  const transition = template.transitionSequence[clipIndex % template.transitionSequence.length] || template.transitionKind;
 
   return (
     <section className="stage-panel">
@@ -52,7 +55,7 @@ export function Stage({
         <span className="eyebrow">LIVE PREVIEW</span>
         <span>{aspectRatio} · {template.transitionLabel} · {template.effectLabel}</span>
       </div>
-      <div className={`stage-frame ratio-${aspectRatio.replace(":", "-")} ${template.previewClass} ${isPlaying ? "is-playing" : ""}`} style={{ "--accent": accent } as React.CSSProperties}>
+      <div className={`stage-frame ratio-${aspectRatio.replace(":", "-")} ${template.previewClass} transition-${transition} ${isPlaying ? "is-playing" : ""}`} style={{ "--accent": accent } as React.CSSProperties}>
         {clip ? (
           <>
             {clip.type === "image" ? (

@@ -153,7 +153,17 @@ main { width: min(1380px, 92vw); margin: 0 auto; padding: 72px 0 90px; }
 .advanced-note small { color: var(--muted); font-size: 10px; }
 
 .music-field { margin-top: 18px; }
-.music-field > span { display: block; color: #c7c4cc; font-size: 11px; font-weight: 700; margin-bottom: 7px; }
+.music-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.music-heading > span { color: #c7c4cc; font-size: 11px; font-weight: 700; }
+.music-heading em { color: #7edfc5; font-style: normal; font-size: 8px; }
+.music-library { padding: 10px; border: 1px solid rgba(217,255,105,.14); border-radius: 13px; background: rgba(217,255,105,.025); }
+.builtin-tracks { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 8px; }
+.builtin-tracks button { min-width: 0; min-height: 52px; padding: 7px 8px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 10px; background: #111116; text-align: left; cursor: pointer; }
+.builtin-tracks button:hover, .builtin-tracks button.selected { border-color: var(--track-color); background: color-mix(in srgb, var(--track-color) 9%, #111116); }
+.track-play { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--track-color); color: #111; font-size: 14px; font-weight: 900; }
+.builtin-tracks strong, .builtin-tracks small { display: block; }
+.builtin-tracks strong { font-size: 10px; }
+.builtin-tracks small { margin-top: 2px; color: var(--muted); font-size: 8px; white-space: nowrap; }
 .add-music { width: 100%; min-height: 54px; display: flex; align-items: center; gap: 11px; text-align: left; padding: 10px 12px; border: 1px dashed rgba(217,255,105,.3); border-radius: 12px; background: rgba(217,255,105,.055); cursor: pointer; }
 .add-music svg { color: var(--lime); }
 .add-music strong, .add-music small, .music-track strong, .music-track small { display: block; }
@@ -167,6 +177,9 @@ main { width: min(1380px, 92vw); margin: 0 auto; padding: 72px 0 90px; }
 .music-track > label { display: block; }
 .music-track > label > span { display: flex; justify-content: space-between; color: var(--muted); font-size: 9px; }
 .music-track input[type="range"] { width: 100%; height: auto; padding: 0; accent-color: var(--lime); }
+.music-track .music-track-actions { display: flex; justify-content: space-between; margin-top: 4px; }
+.change-music, .remove-music { border: 0; background: transparent; padding: 4px 0 0; display: flex; align-items: center; gap: 5px; font-size: 9px; cursor: pointer; }
+.change-music { color: var(--lime); }
 .remove-music { border: 0; background: transparent; color: #ff8d9d; padding: 4px 0 0; display: flex; align-items: center; gap: 5px; font-size: 9px; cursor: pointer; }
 
 .stage-panel { width: min(100%, 690px); justify-self: center; }
@@ -182,6 +195,14 @@ main { width: min(1380px, 92vw); margin: 0 auto; padding: 72px 0 90px; }
 .stage-frame.template-film > img, .stage-frame.template-film > video { animation: preview-film .62s steps(5); }
 .stage-frame.template-block > img, .stage-frame.template-block > video { animation: preview-slide .45s cubic-bezier(.2,.9,.3,1); }
 .stage-frame.template-clean > img, .stage-frame.template-clean > video { animation: preview-clean .55s ease; }
+.stage-frame.transition-pop > img, .stage-frame.transition-pop > video { animation: transition-pop .42s cubic-bezier(.2,1.6,.35,1); }
+.stage-frame.transition-zoom > img, .stage-frame.transition-zoom > video { animation: transition-zoom .48s cubic-bezier(.18,.82,.25,1); }
+.stage-frame.transition-flip > img, .stage-frame.transition-flip > video { animation: transition-flip .52s cubic-bezier(.2,.8,.2,1); transform-origin: center; }
+.stage-frame.transition-spin > img, .stage-frame.transition-spin > video { animation: transition-spin .55s cubic-bezier(.2,.85,.25,1); }
+.stage-frame.transition-slide > img, .stage-frame.transition-slide > video { animation: preview-slide .45s cubic-bezier(.2,.9,.3,1); }
+.stage-frame.transition-wipe > img, .stage-frame.transition-wipe > video { animation: preview-wipe .48s cubic-bezier(.3,.8,.3,1); }
+.stage-frame.transition-flash > img, .stage-frame.transition-flash > video { animation: preview-film .45s steps(4); }
+.stage-frame.transition-dissolve > img, .stage-frame.transition-dissolve > video, .stage-frame.transition-clean > img, .stage-frame.transition-clean > video { animation: preview-dissolve .62s ease; }
 .stage-frame.is-playing.template-soft > img { animation: preview-drift 5s ease-in-out alternate infinite; }
 .stage-frame.is-playing.template-film::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: .2; background-image: radial-gradient(rgba(255,255,255,.45) .7px, transparent .7px); background-size: 5px 7px; animation: grain-jump .18s steps(2) infinite; }
 .stage-frame.is-playing.template-block .stage-accent { animation: accent-sweep 1.2s ease-in-out infinite alternate; }
@@ -294,6 +315,10 @@ main { width: min(1380px, 92vw); margin: 0 auto; padding: 72px 0 90px; }
 @keyframes preview-film { 0% { opacity: 0; filter: sepia(1) brightness(2); } 35% { opacity: .45; } 55% { opacity: .2; filter: sepia(.4) brightness(.7); } 100% { opacity: 1; } }
 @keyframes preview-slide { from { opacity: .4; clip-path: polygon(100% 0,100% 0,100% 100%,100% 100%); } to { opacity: 1; clip-path: polygon(0 0,100% 0,100% 100%,0 100%); } }
 @keyframes preview-clean { from { opacity: 0; } to { opacity: 1; } }
+@keyframes transition-pop { 0% { opacity: 0; transform: scale(.68); } 65% { opacity: 1; transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes transition-zoom { from { opacity: .25; transform: scale(1.48); filter: blur(5px); } to { opacity: 1; transform: scale(1); } }
+@keyframes transition-flip { from { opacity: 0; transform: perspective(700px) rotateY(86deg) scale(.82); } to { opacity: 1; transform: perspective(700px) rotateY(0) scale(1); } }
+@keyframes transition-spin { from { opacity: 0; transform: rotate(-32deg) scale(.62); } to { opacity: 1; transform: rotate(0) scale(1); } }
 @keyframes preview-drift { from { transform: scale(1.01); } to { transform: scale(1.08) translate(-1.2%, -.8%); } }
 @keyframes grain-jump { from { transform: translate(-1%, 1%); } to { transform: translate(1%, -1%); } }
 @keyframes accent-sweep { from { transform: translateX(-25%) rotate(7deg); } to { transform: translateX(25%) rotate(-4deg); } }

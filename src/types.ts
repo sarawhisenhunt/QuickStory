@@ -1,7 +1,7 @@
 export type AspectRatio = "9:16" | "1:1" | "16:9";
 export type CropMode = "fill" | "fit";
 export type MediaKind = "image" | "video";
-export type TransitionKind = "pop" | "dissolve" | "wipe" | "flash" | "slide" | "clean";
+export type TransitionKind = "pop" | "zoom" | "flip" | "spin" | "dissolve" | "wipe" | "flash" | "slide" | "clean";
 export type EffectKind = "punch" | "ken-burns" | "bold" | "film" | "color-sweep" | "subtle";
 
 export interface ClipEdits {
@@ -37,6 +37,7 @@ export interface MediaClip {
 
 export interface MusicTrack {
   id: string;
+  builtinId?: string;
   file?: File;
   name: string;
   mimeType: string;
@@ -65,6 +66,7 @@ export interface StoryTemplate {
   accent: string;
   transition: string;
   transitionKind: TransitionKind;
+  transitionSequence: TransitionKind[];
   transitionLabel: string;
   effectKind: EffectKind;
   effectLabel: string;

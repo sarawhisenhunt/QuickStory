@@ -9,7 +9,7 @@ The product opens directly in the editor. There is no dashboard, approval proces
 - Six media-aware storyboards: one-video recap, two-video memories, three-video highlight, three-video-only rush, photo pop, and flexible mix
 - Automatic best-template selection based on the number of original videos and photos
 - Deliberate video beats that reuse different sections of source footage between photo runs
-- Distinct pop, dissolve, wipe, flash, slide, and clean transitions
+- Mixed transition sequences within each story, including snap-pop, punch-zoom, flip, spin, wipe, flash, slide, and dissolve
 - Template-specific zoom, drift, bold-color, film-grain, sweep, and subtle-push effects
 - Drag-and-drop photo and video uploads
 - Automatic multi-moment cuts from different sections of longer source videos
@@ -20,7 +20,7 @@ The product opens directly in the editor. There is no dashboard, approval proces
 - Optional per-clip trim, speed, duration, crop, position, zoom, rotation, color, volume, and text controls
 - On-device autosave using IndexedDB, including source media
 - On-device video export through Canvas, Web Audio, and MediaRecorder
-- Optional MP3, M4A, WAV, AAC, OGG, or WebM music with adjustable mix volume
+- Four original, royalty-free built-in instrumental loops plus optional MP3, M4A, WAV, AAC, OGG, or WebM music uploads
 - MP4 output when the browser supports MP4 recording, with WebM as the compatibility fallback
 - Installable PWA metadata
 

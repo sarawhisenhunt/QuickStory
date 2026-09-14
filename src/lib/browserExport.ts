@@ -213,6 +213,23 @@ function drawWithTransition(
     ctx.translate(width / 2, height / 2);
     ctx.scale(0.78 + eased * 0.22, 0.78 + eased * 0.22);
     ctx.translate(-width / 2, -height / 2);
+  } else if (kind === "zoom") {
+    ctx.globalAlpha = eased;
+    ctx.translate(width / 2, height / 2);
+    const zoom = 1.48 - eased * 0.48;
+    ctx.scale(zoom, zoom);
+    ctx.translate(-width / 2, -height / 2);
+  } else if (kind === "flip") {
+    ctx.globalAlpha = Math.min(1, eased * 1.35);
+    ctx.translate(width / 2, height / 2);
+    ctx.scale(Math.max(0.04, eased), 0.82 + eased * 0.18);
+    ctx.translate(-width / 2, -height / 2);
+  } else if (kind === "spin") {
+    ctx.globalAlpha = eased;
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate((clipIndex % 2 ? -1 : 1) * (1 - eased) * Math.PI * 0.22);
+    ctx.scale(0.68 + eased * 0.32, 0.68 + eased * 0.32);
+    ctx.translate(-width / 2, -height / 2);
   } else if (kind === "dissolve" || kind === "clean") {
     ctx.globalAlpha = eased;
   } else if (kind === "wipe") {
@@ -325,7 +342,8 @@ export async function exportInBrowser(project: StoryProject, onProgress: (percen
         if (index > 0 && previousCtx) ctx.drawImage(previous, 0, 0);
         const transitionDuration = Math.min(0.55, duration * 0.3);
         const transitionAmount = index === 0 ? 1 : elapsed / transitionDuration;
-        drawWithTransition(ctx, template.transitionKind, transitionAmount, index, width, height, () => {
+        const transition = template.transitionSequence[index % template.transitionSequence.length] || template.transitionKind;
+        drawWithTransition(ctx, transition, transitionAmount, index, width, height, () => {
           drawMedia(ctx, media, sourceWidth, sourceHeight, clip, width, height, elapsed / duration, project.templateId, index);
           drawOverlay(ctx, project, clip, width, height, elapsed, duration);
         });
