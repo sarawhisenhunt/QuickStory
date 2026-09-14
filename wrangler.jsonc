@@ -10,5 +10,15 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
-  }
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["RenderContainer"]
+    },
+    {
+      "tag": "v2-browser-export",
+      "deleted_classes": ["RenderContainer"]
+    }
+  ]
 }
